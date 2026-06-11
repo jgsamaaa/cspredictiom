@@ -53,6 +53,8 @@ OPENAI_MODEL=gpt-5.4-mini
 
 The analysis route sends only the match data already gathered from approved APIs or manual stats. It does not scrape HLTV or browse the web.
 
+The analyst also produces map-specific strengths and weaknesses. For each available map sample, it labels each team as `strong`, `weak`, or `even`, explains the weakness, and gives a research angle such as waiting for veto confirmation or downgrading a team on a weak map.
+
 ## Learning Loop
 
 The analyst improves through calibration from your own resolved bet journal outcomes. Each time you mark entries as `win` or `loss`, the analysis route summarizes settled journal history, confidence buckets, team-specific outcomes, and ROI. That learning profile is included in future OpenAI prompts and also adjusts the final confidence score.

@@ -1,4 +1,10 @@
-import type { AnalystResult, CSMatch, LiveSnapshot, RecommendationAction } from "@/lib/types";
+import type {
+  AnalystResult,
+  CSMatch,
+  LiveSnapshot,
+  MapWinRate,
+  RecommendationAction,
+} from "@/lib/types";
 
 function winRateFromForm(results: { result: "W" | "L" }[]) {
   if (results.length === 0) return 0.5;
@@ -12,6 +18,42 @@ function avg(values: number[]) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function mapStatus(edge: number, side: "teamA" | "teamB") {
+  const sideEdge = side === "teamA" ? edge : -edge;
+  if (sideEdge >= 8) return "strong" as const;
+  if (sideEdge <= -8) return "weak" as const;
+  return "even" as const;
+}
+
+function buildMapInsight(match: CSMatch, map: MapWinRate) {
+  const edge = map.teamA - map.teamB;
+  const strongerTeam =
+    Math.abs(edge) < 8 ? null : edge > 0 ? match.teamA : match.teamB;
+  const weakerTeam =
+    Math.abs(edge) < 8 ? null : edge > 0 ? match.teamB : match.teamA;
+  const sampleWarning =
+    Math.min(map.sampleA, map.sampleB) < 10 ? " Sample is thin." : "";
+
+  return {
+    map: map.map,
+    teamAStatus: mapStatus(edge, "teamA"),
+    teamBStatus: mapStatus(edge, "teamB"),
+    edge,
+    summary: strongerTeam
+      ? `${strongerTeam.shortName} has the map edge on ${map.map}; ${weakerTeam?.shortName} is the weaker side in this sample.${sampleWarning}`
+      : `${map.map} looks close from the attached win-rate sample.${sampleWarning}`,
+    suggestedAngle: strongerTeam
+      ? `Prefer ${strongerTeam.shortName} exposure only if veto/order confirms ${map.map}; downgrade ${weakerTeam?.shortName} on this map.`
+      : `Treat ${map.map} as close; wait for pistol/economy or avoid using it as the main edge.`,
+  };
+}
+
+function buildMapInsights(match: CSMatch) {
+  return match.mapWinRates
+    .map((map) => buildMapInsight(match, map))
+    .sort((a, b) => Math.abs(b.edge) - Math.abs(a.edge));
 }
 
 export function analyzeMatch(match: CSMatch, live?: LiveSnapshot): AnalystResult {
@@ -80,6 +122,8 @@ export function analyzeMatch(match: CSMatch, live?: LiveSnapshot): AnalystResult
       : "No live signal included in this pre-match run.",
   ];
 
+  const mapInsights = buildMapInsights(match);
+
   const riskFlags = [
     ...match.rosterNotes,
     ...(match.maps.some((map) => map.map === "TBD" || map.state === "unknown")
@@ -96,6 +140,7 @@ export function analyzeMatch(match: CSMatch, live?: LiveSnapshot): AnalystResult
     recommendedAction,
     teamAProbability,
     teamBProbability,
+    mapInsights,
     reasoning,
     riskFlags,
     dataSources: match.providerSources,

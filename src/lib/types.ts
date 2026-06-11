@@ -98,6 +98,14 @@ export type AnalystResult = {
   recommendedAction: RecommendationAction;
   teamAProbability: number;
   teamBProbability: number;
+  mapInsights: Array<{
+    map: string;
+    teamAStatus: "strong" | "weak" | "even";
+    teamBStatus: "strong" | "weak" | "even";
+    edge: number;
+    summary: string;
+    suggestedAngle: string;
+  }>;
   reasoning: string[];
   riskFlags: string[];
   dataSources: ProviderName[];

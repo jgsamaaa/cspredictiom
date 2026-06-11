@@ -11,6 +11,18 @@ const analystOutputSchema = z.object({
   recommendedAction: z.enum(["Bet Team A", "Bet Team B", "Wait Live", "Avoid"]),
   teamAProbability: z.number().int().min(1).max(99),
   teamBProbability: z.number().int().min(1).max(99),
+  mapInsights: z
+    .array(
+      z.object({
+        map: z.string().min(2).max(40),
+        teamAStatus: z.enum(["strong", "weak", "even"]),
+        teamBStatus: z.enum(["strong", "weak", "even"]),
+        edge: z.number().int().min(-100).max(100),
+        summary: z.string().min(12).max(260),
+        suggestedAngle: z.string().min(12).max(260),
+      }),
+    )
+    .max(7),
   reasoning: z.array(z.string().min(8).max(260)).min(3).max(6),
   riskFlags: z.array(z.string().min(8).max(260)).min(2).max(6),
 });
@@ -24,6 +36,7 @@ const jsonSchema = {
     "recommendedAction",
     "teamAProbability",
     "teamBProbability",
+    "mapInsights",
     "reasoning",
     "riskFlags",
   ],
@@ -36,6 +49,30 @@ const jsonSchema = {
     },
     teamAProbability: { type: "integer", minimum: 1, maximum: 99 },
     teamBProbability: { type: "integer", minimum: 1, maximum: 99 },
+    mapInsights: {
+      type: "array",
+      maxItems: 7,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "map",
+          "teamAStatus",
+          "teamBStatus",
+          "edge",
+          "summary",
+          "suggestedAngle",
+        ],
+        properties: {
+          map: { type: "string" },
+          teamAStatus: { type: "string", enum: ["strong", "weak", "even"] },
+          teamBStatus: { type: "string", enum: ["strong", "weak", "even"] },
+          edge: { type: "integer", minimum: -100, maximum: 100 },
+          summary: { type: "string" },
+          suggestedAngle: { type: "string" },
+        },
+      },
+    },
     reasoning: {
       type: "array",
       minItems: 3,
@@ -92,6 +129,8 @@ export async function analyzeMatchWithOpenAI(
           content: JSON.stringify({
             task: "Analyze this CS2 match for personal research.",
             requiredActions: ["Bet Team A", "Bet Team B", "Wait Live", "Avoid"],
+            mapWeaknessTask:
+              "For every available map win-rate sample, identify which team is strong, weak, or even. Explain the map-specific weakness and when it matters for betting research.",
             match,
             liveSnapshot: live ?? null,
             baselineModel: fallback,

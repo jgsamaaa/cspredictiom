@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BrainCircuit, Loader2, ShieldAlert, Sparkles } from "lucide-react";
+import { BrainCircuit, Loader2, Map, ShieldAlert, Sparkles } from "lucide-react";
 import type { AnalystResult, CSMatch } from "@/lib/types";
 
 export function AnalysisPanel({ match }: { match: CSMatch }) {
@@ -111,6 +111,65 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <Map size={14} className="text-teal-300" />
+              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Map strengths / weaknesses
+              </h3>
+            </div>
+            {display.mapInsights.length ? (
+              <div className="mt-2 space-y-2">
+                {display.mapInsights.map((insight) => (
+                  <div
+                    key={`${insight.map}-${insight.edge}`}
+                    className="rounded-md border border-slate-800 bg-slate-950/40 p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-100">
+                        {insight.map}
+                      </p>
+                      <div className="flex gap-2 text-[11px] uppercase tracking-[0.12em]">
+                        <span
+                          className={`rounded border px-2 py-1 ${
+                            insight.teamAStatus === "strong"
+                              ? "border-teal-400/35 bg-teal-400/10 text-teal-200"
+                              : insight.teamAStatus === "weak"
+                                ? "border-rose-400/35 bg-rose-400/10 text-rose-200"
+                                : "border-slate-700 bg-slate-900 text-slate-400"
+                          }`}
+                        >
+                          {match.teamA.shortName} {insight.teamAStatus}
+                        </span>
+                        <span
+                          className={`rounded border px-2 py-1 ${
+                            insight.teamBStatus === "strong"
+                              ? "border-amber-300/35 bg-amber-300/10 text-amber-200"
+                              : insight.teamBStatus === "weak"
+                                ? "border-rose-400/35 bg-rose-400/10 text-rose-200"
+                                : "border-slate-700 bg-slate-900 text-slate-400"
+                          }`}
+                        >
+                          {match.teamB.shortName} {insight.teamBStatus}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      {insight.summary}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      {insight.suggestedAngle}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 rounded-md border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-500">
+                No map weakness sample attached yet.
+              </p>
+            )}
           </div>
 
           <div>
