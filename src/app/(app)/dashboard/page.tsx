@@ -4,47 +4,88 @@ import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
 import { MatchTable } from "@/components/matches/match-table";
 import { MetricCard } from "@/components/ui/metric-card";
 import { buildAnalytics } from "@/lib/analytics/journal";
-import { getTodaysMatches } from "@/lib/data/providers";
-import { formatCurrency, formatMatchTime } from "@/lib/format";
+import { getMatchesForDate } from "@/lib/data/providers";
+import { formatCurrency, formatMatchTime, todayKey } from "@/lib/format";
 import { getJournalEntries } from "@/lib/journal-store";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+function dateFromKey(value: string) {
+  return new Date(`${value}T12:00:00.000Z`);
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date } = await searchParams;
+  const currentDate = new Date();
+  const selectedDateKey =
+    date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : todayKey(currentDate);
+  const selectedDate = dateFromKey(selectedDateKey);
+  const quickDates = [
+    { label: "Today", date: todayKey(currentDate) },
+    { label: "Tomorrow", date: todayKey(addDays(currentDate, 1)) },
+    { label: "IEM Jun 11", date: "2026-06-11" },
+    { label: "IEM Jun 12", date: "2026-06-12" },
+  ];
   const [matches, journalEntries] = await Promise.all([
-    getTodaysMatches(),
+    getMatchesForDate(selectedDate),
     getJournalEntries(),
   ]);
   const analytics = buildAnalytics(journalEntries);
   const liveCount = matches.filter((match) => match.status === "live").length;
   const nextMatch = matches[0];
+  const isIemBoard = matches.some((match) => match.event === "IEM Cologne Major 2026");
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Today&apos;s CS2 Board
+            {isIemBoard ? "IEM Cologne Major Board" : "CS2 Match Board"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-            Private probability estimates built from approved providers and manual stats.
+            {selectedDateKey} schedule built from approved providers and manual stats.
           </p>
         </div>
-        {nextMatch ? (
-          <Link
-            href={`/matches/${nextMatch.id}`}
-            className="focus-ring inline-flex h-10 items-center justify-center rounded-md border border-teal-400/40 bg-teal-400/10 px-3 text-sm font-semibold text-teal-100 transition hover:bg-teal-400/15"
-          >
-            Open next match
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {quickDates.map((item) => (
+            <Link
+              key={`${item.label}-${item.date}`}
+              href={`/dashboard?date=${item.date}`}
+              className={`focus-ring inline-flex h-9 items-center justify-center rounded-md border px-3 text-xs font-semibold transition ${
+                selectedDateKey === item.date
+                  ? "border-teal-400/50 bg-teal-400/10 text-teal-100"
+                  : "border-slate-700 bg-slate-950/70 text-slate-400 hover:text-slate-100"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {nextMatch ? (
+            <Link
+              href={`/matches/${nextMatch.id}`}
+              className="focus-ring inline-flex h-10 items-center justify-center rounded-md border border-teal-400/40 bg-teal-400/10 px-3 text-sm font-semibold text-teal-100 transition hover:bg-teal-400/15"
+            >
+              Open next match
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Matches today"
+          label="Matches"
           value={String(matches.length)}
-          detail="Schedule from approved API or manual entry."
+          detail={`Schedule for ${selectedDateKey}.`}
           icon={<Activity size={18} />}
         />
         <MetricCard
@@ -68,7 +109,15 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_420px]">
-        <MatchTable matches={matches} />
+        <MatchTable
+          matches={matches}
+          title={isIemBoard ? "IEM Cologne Major Matches" : "CS2 Matches"}
+          subtitle={
+            isIemBoard
+              ? "IEM Major schedule. June 12 Swiss pairings stay TBD until prior results are known."
+              : "Approved provider data with manual stats fallback."
+          }
+        />
         <section className="panel rounded-lg p-4">
           <h2 className="text-sm font-semibold text-slate-100">Next Match Context</h2>
           {nextMatch ? (
@@ -92,7 +141,9 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">No matches found for today.</p>
+            <p className="mt-3 text-sm text-slate-500">
+              No matches found for {selectedDateKey}.
+            </p>
           )}
         </section>
       </div>

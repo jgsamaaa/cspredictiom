@@ -1,9 +1,17 @@
 import type { BetJournalEntry, CSMatch, LiveSnapshot, TeamProfile } from "@/lib/types";
 
+function dateKey(base = new Date()) {
+  return base.toISOString().slice(0, 10);
+}
+
 function atToday(hour: number, minute = 0, base = new Date()) {
   const date = new Date(base);
   date.setHours(hour, minute, 0, 0);
   return date.toISOString();
+}
+
+function atUtc(date: string, hour: number, minute = 0) {
+  return `${date}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00.000Z`;
 }
 
 function statusFor(startIso: string) {
@@ -110,7 +118,165 @@ const cobalt: TeamProfile = {
   rosterNotes: ["Stable roster over last 30 maps.", "Manual note: faster starts after pistol losses in latest sample."],
 };
 
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function iemTeam(name: string, shortName: string, rank: number, powerRating: number): TeamProfile {
+  return {
+    id: slugify(name),
+    name,
+    shortName,
+    region: "TBD",
+    rank,
+    powerRating,
+    form: [],
+    players: [],
+    rosterNotes: [
+      "Manual IEM seed profile. Verify player stats and roster status with PandaScore, GRID, Abios, or manual notes before betting research.",
+    ],
+  };
+}
+
+function tbdTeam(slot: string): TeamProfile {
+  return {
+    id: slugify(slot),
+    name: slot,
+    shortName: "TBD",
+    region: "TBD",
+    rank: 0,
+    powerRating: 50,
+    form: [],
+    players: [],
+    rosterNotes: ["Swiss pairing is not confirmed yet."],
+  };
+}
+
+const iemTeams = {
+  mongolz: iemTeam("The MongolZ", "MGLZ", 9, 84),
+  betboom: iemTeam("BetBoom Team", "BB", 17, 78),
+  parivision: iemTeam("PARIVISION", "PRV", 13, 79),
+  ninez: iemTeam("9z Team", "9Z", 20, 73),
+  mouz: iemTeam("MOUZ", "MOUZ", 7, 86),
+  legacy: iemTeam("Legacy", "LEG", 14, 78),
+  vitality: iemTeam("Team Vitality", "VIT", 1, 93),
+  fut: iemTeam("FUT Esports", "FUT", 24, 71),
+  furia: iemTeam("FURIA", "FUR", 6, 87),
+  b8: iemTeam("B8 Esports", "B8", 19, 75),
+  falcons: iemTeam("Team Falcons", "FLC", 5, 88),
+  g2: iemTeam("G2 Esports", "G2", 12, 81),
+  auroraIem: iemTeam("Aurora", "AUR", 8, 85),
+  monte: iemTeam("Monte", "MON", 18, 76),
+  navi: iemTeam("Natus Vincere", "NAVI", 10, 83),
+  spirit: iemTeam("Team Spirit", "SPR", 2, 92),
+};
+
+function manualMapRates(teamA: number, teamB: number) {
+  const spread = Math.round((teamA - teamB) / 2);
+  return [
+    { map: "Dust2", teamA: 50 + spread, teamB: 50 - spread, sampleA: 0, sampleB: 0, note: "Manual IEM prior; replace with provider stats." },
+    { map: "Mirage", teamA: 52 + spread, teamB: 48 - spread, sampleA: 0, sampleB: 0, note: "Manual IEM prior; verify veto." },
+    { map: "Inferno", teamA: 49 + spread, teamB: 51 - spread, sampleA: 0, sampleB: 0 },
+    { map: "Nuke", teamA: 51 + spread, teamB: 49 - spread, sampleA: 0, sampleB: 0 },
+    { map: "Ancient", teamA: 50 + spread, teamB: 50 - spread, sampleA: 0, sampleB: 0 },
+    { map: "Anubis", teamA: 48 + spread, teamB: 52 - spread, sampleA: 0, sampleB: 0 },
+  ].map((rate) => ({
+    ...rate,
+    teamA: Math.max(30, Math.min(70, rate.teamA)),
+    teamB: Math.max(30, Math.min(70, rate.teamB)),
+  }));
+}
+
+function iemMatch({
+  date,
+  hour,
+  minute,
+  order,
+  teamA,
+  teamB,
+  stage,
+}: {
+  date: string;
+  hour: number;
+  minute: number;
+  order: number;
+  teamA: TeamProfile;
+  teamB: TeamProfile;
+  stage: string;
+}): CSMatch {
+  const startsAt = atUtc(date, hour, minute);
+  const hasConfirmedTeams = !teamA.name.startsWith("TBD") && !teamB.name.startsWith("TBD");
+
+  return {
+    id: `iem-cologne-major-2026-${date}-${order}`,
+    providerSources: ["Manual Stats"],
+    dataFreshness: hasConfirmedTeams
+      ? "IEM Major schedule entered manually from public non-HLTV sources"
+      : "Official IEM time slot entered manually; Swiss teams pending results",
+    status: statusFor(startsAt),
+    startsAt,
+    event: "IEM Cologne Major 2026",
+    stage,
+    bestOf: 3,
+    teamA,
+    teamB,
+    maps: [{ map: "TBD", state: "unknown", lean: "even" }],
+    mapWinRates: hasConfirmedTeams
+      ? manualMapRates(teamA.powerRating, teamB.powerRating)
+      : [],
+    headToHead: [],
+    rosterNotes: hasConfirmedTeams
+      ? [
+          "Stage 3 match added from public schedule data, not HLTV scraping.",
+          "Map stats are manual priors until a connected provider supplies verified map samples.",
+        ]
+      : [
+          "Swiss Day 2 pairing is TBD until prior results complete.",
+          "Use Wait Live or Avoid until teams, veto, and roster notes are confirmed.",
+        ],
+    marketSnapshots: [],
+  };
+}
+
+function getIemMajorMatches(base: Date): CSMatch[] {
+  const key = dateKey(base);
+
+  if (key === "2026-06-11") {
+    return [
+      iemMatch({ date: key, hour: 9, minute: 0, order: 1, teamA: iemTeams.mongolz, teamB: iemTeams.betboom, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 9, minute: 0, order: 2, teamA: iemTeams.parivision, teamB: iemTeams.ninez, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 11, minute: 30, order: 3, teamA: iemTeams.mouz, teamB: iemTeams.legacy, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 11, minute: 30, order: 4, teamA: iemTeams.vitality, teamB: iemTeams.fut, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 14, minute: 0, order: 5, teamA: iemTeams.furia, teamB: iemTeams.b8, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 14, minute: 0, order: 6, teamA: iemTeams.falcons, teamB: iemTeams.g2, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 16, minute: 30, order: 7, teamA: iemTeams.auroraIem, teamB: iemTeams.monte, stage: "Stage 3 Day 1" }),
+      iemMatch({ date: key, hour: 16, minute: 30, order: 8, teamA: iemTeams.navi, teamB: iemTeams.spirit, stage: "Stage 3 Day 1" }),
+    ];
+  }
+
+  if (key === "2026-06-12") {
+    return [9, 11, 14, 16].map((hour, index) =>
+      iemMatch({
+        date: key,
+        hour,
+        minute: index === 1 || index === 3 ? 30 : 0,
+        order: index + 1,
+        teamA: tbdTeam(`TBD Swiss Pairing ${index + 1} A`),
+        teamB: tbdTeam(`TBD Swiss Pairing ${index + 1} B`),
+        stage: "Stage 3 Day 2",
+      }),
+    );
+  }
+
+  return [];
+}
+
 export function getManualMatches(base = new Date()): CSMatch[] {
+  const iemMajorMatches = getIemMajorMatches(base);
+  if (iemMajorMatches.length > 0) {
+    return iemMajorMatches;
+  }
+
   const firstStart = atToday(18, 30, base);
   const secondStart = atToday(21, 0, base);
 

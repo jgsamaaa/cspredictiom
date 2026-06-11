@@ -106,11 +106,11 @@ async function fetchPandaScoreMatches(date = new Date()): Promise<CSMatch[]> {
   return data.map(mapPandaScoreMatch);
 }
 
-export async function getTodaysMatches() {
-  const manual = getManualMatches();
+export async function getMatchesForDate(date = new Date()) {
+  const manual = getManualMatches(date);
 
   try {
-    const providerMatches = await fetchPandaScoreMatches();
+    const providerMatches = await fetchPandaScoreMatches(date);
     if (providerMatches.length > 0) {
       return providerMatches;
     }
@@ -121,9 +121,31 @@ export async function getTodaysMatches() {
   return manual;
 }
 
+export async function getTodaysMatches() {
+  return getMatchesForDate();
+}
+
 export async function getMatchById(matchId: string) {
-  const matches = await getTodaysMatches();
-  return matches.find((match) => match.id === matchId) ?? getManualMatches().find((match) => match.id === matchId) ?? null;
+  const dateFromId = matchId.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+  const primaryDate = dateFromId ? new Date(`${dateFromId}T12:00:00.000Z`) : new Date();
+  const primaryMatches = await getMatchesForDate(primaryDate);
+  const primaryMatch = primaryMatches.find((match) => match.id === matchId);
+
+  if (primaryMatch) return primaryMatch;
+
+  const fallbackDates = [
+    new Date(),
+    new Date(Date.now() + 24 * 60 * 60 * 1000),
+    new Date("2026-06-11T12:00:00.000Z"),
+    new Date("2026-06-12T12:00:00.000Z"),
+  ];
+
+  for (const date of fallbackDates) {
+    const match = getManualMatches(date).find((candidate) => candidate.id === matchId);
+    if (match) return match;
+  }
+
+  return null;
 }
 
 export const approvedProviders: ProviderName[] = [

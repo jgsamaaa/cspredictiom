@@ -4,15 +4,21 @@ import { formatShortTime } from "@/lib/format";
 import type { CSMatch } from "@/lib/types";
 import { StatusPill } from "@/components/ui/status-pill";
 
-export function MatchTable({ matches }: { matches: CSMatch[] }) {
+export function MatchTable({
+  matches,
+  title = "CS2 Matches",
+  subtitle = "Approved provider data with manual stats fallback.",
+}: {
+  matches: CSMatch[];
+  title?: string;
+  subtitle?: string;
+}) {
   return (
     <section id="matches" className="panel overflow-hidden rounded-lg">
       <div className="flex items-center justify-between gap-4 border-b border-slate-800 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-100">Today&apos;s CS2 Matches</h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Approved provider data with manual stats fallback.
-          </p>
+          <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
+          <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
         </div>
         <MapPinned size={18} className="text-teal-300" />
       </div>
