@@ -7,7 +7,7 @@ Private CS2 prediction dashboard for personal betting research. It is not a publ
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Supabase Auth and Postgres for private login and bet journal persistence
+- Optional Supabase/Postgres storage for journal persistence
 - Approved data provider layer with PandaScore schedule support and manual stats fallback
 
 ## Local Setup
@@ -18,27 +18,20 @@ cp .env.example .env.local
 npm run dev
 ```
 
-If Supabase credentials are not configured, local preview auth uses:
-
-```text
-password: research-only
-```
-
-Set `NEXT_PUBLIC_DEMO_PASSWORD` in `.env.local` to change that preview password.
+The app opens directly to the dashboard. There is no login gate.
 
 ## Supabase
 
 1. Create a Supabase project.
-2. Enable email/password auth.
-3. Run `supabase/schema.sql` in the SQL editor.
-4. Add these variables to `.env.local`:
+2. Run `supabase/schema.sql` in the SQL editor if you want hosted journal storage.
+3. Add these variables to `.env.local`:
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-The `bet_journal` table has row-level security enabled so authenticated users only see their own entries.
+Without a configured Supabase project, journal entries are stored in browser local storage.
 
 For Vercel, add the same variables in Project Settings -> Environment Variables, then redeploy.
 
@@ -79,7 +72,7 @@ PandaScore uses the legacy `/csgo/` path for CS2 endpoints, including `/csgo/mat
 
 ## Features
 
-- Private login
+- Direct dashboard access
 - Today's CS2 match dashboard
 - Match detail pages with form, H2H, map rates, players, and roster notes
 - AI Analyst Agent route with probability, confidence, action, reasoning, and risk flags

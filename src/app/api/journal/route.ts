@@ -49,6 +49,23 @@ function fromRow(row: JournalRow): BetJournalEntry {
   };
 }
 
+function localEntryFromRequest(entry: z.infer<typeof journalSchema>): BetJournalEntry {
+  return {
+    id: crypto.randomUUID(),
+    matchId: entry.matchId,
+    matchName: entry.matchName,
+    betType: entry.betType,
+    odds: entry.odds,
+    stake: entry.stake,
+    predictionConfidence: entry.predictionConfidence,
+    result: entry.result,
+    profitLoss: entry.profitLoss,
+    notes: entry.notes ?? "",
+    team: entry.team,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export async function GET() {
   return NextResponse.json(await getJournalEntries());
 }
@@ -62,35 +79,12 @@ export async function POST(request: Request) {
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
-    const localEntry: BetJournalEntry = {
-      id: crypto.randomUUID(),
-      matchId: parsed.data.matchId,
-      matchName: parsed.data.matchName,
-      betType: parsed.data.betType,
-      odds: parsed.data.odds,
-      stake: parsed.data.stake,
-      predictionConfidence: parsed.data.predictionConfidence,
-      result: parsed.data.result,
-      profitLoss: parsed.data.profitLoss,
-      notes: parsed.data.notes ?? "",
-      team: parsed.data.team,
-      createdAt: new Date().toISOString(),
-    };
-    return NextResponse.json(localEntry);
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(localEntryFromRequest(parsed.data));
   }
 
   const { data, error } = await supabase
     .from("bet_journal")
     .insert({
-      user_id: user.id,
       match_id: parsed.data.matchId,
       match_name: parsed.data.matchName,
       bet_type: parsed.data.betType,

@@ -17,7 +17,7 @@ export default async function SettingsPage() {
   );
   const rows = [
     {
-      label: "Supabase Auth + Journal",
+      label: "Supabase Journal",
       configured: isSupabaseConfigured,
       env: "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY",
     },

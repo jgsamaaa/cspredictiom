@@ -13,7 +13,6 @@ import {
   Shield,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { LogoutButton } from "@/components/layout/logout-button";
 
 const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
@@ -98,7 +97,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <DatabaseZap size={14} className="text-teal-300" />
                   Private workspace
                 </div>
-                <LogoutButton />
               </div>
             </div>
             <nav className="thin-scrollbar flex w-full max-w-full gap-2 overflow-x-auto border-t border-slate-900 px-4 py-2 lg:hidden">

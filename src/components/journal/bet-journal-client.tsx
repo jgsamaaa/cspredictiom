@@ -22,7 +22,7 @@ export function BetJournalClient({
   matches: CSMatch[];
 }) {
   const [entries, setEntries] = useState<BetJournalEntry[]>(() => {
-    if (typeof window === "undefined" || isSupabaseConfigured) return initialEntries;
+    if (typeof window === "undefined") return initialEntries;
     const stored = window.localStorage.getItem(storageKey);
     return stored ? (JSON.parse(stored) as BetJournalEntry[]) : initialEntries;
   });
@@ -37,7 +37,6 @@ export function BetJournalClient({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (isSupabaseConfigured) return;
     window.localStorage.setItem(storageKey, JSON.stringify(entries));
   }, [entries]);
 
@@ -85,6 +84,8 @@ export function BetJournalClient({
         if (response.ok) {
           const saved = (await response.json()) as BetJournalEntry;
           setEntries((current) => [saved, ...current]);
+        } else {
+          setEntries((current) => [entry, ...current]);
         }
       } else {
         setEntries((current) => [entry, ...current]);
