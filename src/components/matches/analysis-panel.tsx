@@ -4,6 +4,31 @@ import { useState } from "react";
 import { BrainCircuit, Loader2, Map, ShieldAlert, Sparkles } from "lucide-react";
 import type { AnalystResult, CSMatch } from "@/lib/types";
 
+function simplePickLabel(result: AnalystResult, match: CSMatch) {
+  if (result.recommendedAction === "Bet Team A") return `Bet ${match.teamA.name}`;
+  if (result.recommendedAction === "Bet Team B") return `Bet ${match.teamB.name}`;
+  return result.recommendedAction;
+}
+
+function simplePickTone(result: AnalystResult) {
+  if (result.recommendedAction === "Avoid") return "border-rose-400/30 bg-rose-400/10";
+  if (result.recommendedAction === "Wait Live") return "border-amber-300/30 bg-amber-300/10";
+  return "border-teal-400/30 bg-teal-400/10";
+}
+
+function pickedSide(result: AnalystResult) {
+  if (result.recommendedAction === "Bet Team A") return "teamA" as const;
+  if (result.recommendedAction === "Bet Team B") return "teamB" as const;
+  return null;
+}
+
+function simpleRule(result: AnalystResult) {
+  if (result.recommendedAction === "Avoid") return "Pass unless live data flips hard.";
+  if (result.recommendedAction === "Wait Live") return "Wait for veto, pistol, and first gun round.";
+  if (result.confidence >= 70) return "Playable only if map veto and roster confirm.";
+  return "Lean only. Do not force a pre-match bet.";
+}
+
 export function AnalysisPanel({ match }: { match: CSMatch }) {
   const [result, setResult] = useState<AnalystResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,6 +58,23 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
   }
 
   const display = result;
+  const side = display ? pickedSide(display) : null;
+  const bestMap =
+    display && side
+      ? display.mapInsights.find((insight) =>
+          side === "teamA"
+            ? insight.teamAStatus === "strong"
+            : insight.teamBStatus === "strong",
+        )
+      : undefined;
+  const dangerMap =
+    display && side
+      ? display.mapInsights.find((insight) =>
+          side === "teamA"
+            ? insight.teamAStatus === "weak"
+            : insight.teamBStatus === "weak",
+        )
+      : undefined;
 
   return (
     <section className="panel rounded-lg p-4">
@@ -65,26 +107,28 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
 
       {display ? (
         <div className="mt-4 space-y-4">
-          <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className={`rounded-lg border p-4 ${simplePickTone(display)}`}>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Simple IEM Pick
+            </p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">
-                  Recommended action
+                <p className="text-2xl font-semibold text-slate-50">
+                  {simplePickLabel(display, match)}
                 </p>
-                <p className="mt-1 text-xl font-semibold text-slate-50">
-                  {display.recommendedAction}
+                <p className="mt-1 text-sm text-slate-300">
+                  {display.summary}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs uppercase tracking-[0.14em] text-slate-500">
                   Confidence
                 </p>
-                <p className="mt-1 font-mono text-2xl font-semibold text-teal-200">
-                  {display.confidence}/100
+                <p className="font-mono text-3xl font-semibold text-teal-200">
+                  {display.confidence}
                 </p>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-300">{display.summary}</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <div className="flex justify-between text-xs text-slate-400">
@@ -111,10 +155,42 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
                 </div>
               </div>
             </div>
+            <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+              <div className="rounded-md border border-slate-800/80 bg-slate-950/45 p-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                  Best edge
+                </p>
+                <p className="mt-1 text-slate-200">
+                  {bestMap ? bestMap.map : "No strong map edge"}
+                </p>
+              </div>
+              <div className="rounded-md border border-slate-800/80 bg-slate-950/45 p-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                  Danger map
+                </p>
+                <p className="mt-1 text-slate-200">
+                  {dangerMap ? dangerMap.map : "No clear danger map"}
+                </p>
+              </div>
+              <div className="rounded-md border border-slate-800/80 bg-slate-950/45 p-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                  Rule
+                </p>
+                <p className="mt-1 text-slate-200">
+                  {simpleRule(display)}
+                </p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-slate-500">
+              Research estimate only. No prediction is guaranteed.
+            </p>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
+          <details className="rounded-lg border border-slate-800 bg-slate-950/30 p-3">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-100">
+              View full map notes and reasoning
+            </summary>
+            <div className="mt-4 flex items-center gap-2">
               <Map size={14} className="text-teal-300" />
               <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Map strengths / weaknesses
@@ -170,32 +246,35 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
                 No map weakness sample attached yet.
               </p>
             )}
-          </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Reasoning
-            </h3>
-            <ul className="mt-2 space-y-2">
-              {display.reasoning.map((item) => (
-                <li key={item} className="rounded-md border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm leading-6 text-slate-300">
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-md border border-amber-300/25 bg-amber-300/10 p-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200">
-              <ShieldAlert size={14} />
-              Risk flags
+            <div className="mt-4">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Reasoning
+              </h3>
+              <ul className="mt-2 space-y-2">
+                {display.reasoning.map((item) => (
+                  <li
+                    key={item}
+                    className="rounded-md border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm leading-6 text-slate-300"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
-              {display.riskFlags.map((flag) => (
-                <li key={flag}>{flag}</li>
-              ))}
-            </ul>
-          </div>
+
+            <div className="mt-4 rounded-md border border-amber-300/25 bg-amber-300/10 p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200">
+                <ShieldAlert size={14} />
+                Risk flags
+              </div>
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+                {display.riskFlags.map((flag) => (
+                  <li key={flag}>{flag}</li>
+                ))}
+              </ul>
+            </div>
+          </details>
         </div>
       ) : (
         <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/45 p-4 text-sm leading-6 text-slate-400">

@@ -250,7 +250,7 @@ function PreviousGames({
 
 export function FullPreviewPanels({ match }: { match: CSMatch }) {
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <section className="panel rounded-lg p-4">
         <div className="mb-3 flex items-center gap-2">
           <ShieldHalf size={17} className="text-teal-300" />

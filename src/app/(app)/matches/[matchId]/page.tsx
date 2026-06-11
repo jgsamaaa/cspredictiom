@@ -18,9 +18,9 @@ export default async function MatchDetailPage({
   if (!match) notFound();
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
       <MatchDataPanels match={match} />
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         <AnalysisPanel match={match} />
         <LiveMatchPanel match={match} initialSnapshot={getManualLiveSnapshot(match)} />
         <section className="panel rounded-lg p-4">

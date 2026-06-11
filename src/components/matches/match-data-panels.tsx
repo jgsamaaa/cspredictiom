@@ -7,7 +7,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 
 function PlayerTable({ team }: { team: TeamProfile }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/40">
+    <div className="min-w-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
       <div className="border-b border-slate-800 px-3 py-2">
         <h3 className="text-sm font-semibold text-slate-100">{team.shortName} players</h3>
       </div>
@@ -49,7 +49,7 @@ function PlayerTable({ team }: { team: TeamProfile }) {
 
 export function MatchDataPanels({ match }: { match: CSMatch }) {
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <section className="panel rounded-lg p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
