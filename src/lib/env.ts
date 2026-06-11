@@ -4,6 +4,8 @@ export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const pandaScoreToken = process.env.PANDASCORE_TOKEN ?? "";
+export const gridApiKey = process.env.GRID_API_KEY ?? "";
+export const abiosApiKey = process.env.ABIOS_API_KEY ?? "";
 
 export const openAiApiKey = process.env.OPENAI_API_KEY ?? "";
 export const openAiModel = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";

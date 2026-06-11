@@ -42,7 +42,7 @@ export function LiveMatchPanel({
             <h2 className="text-sm font-semibold text-slate-100">Live Match Mode</h2>
           </div>
           <p className="mt-1 text-xs text-slate-500">
-            Periodic refresh for probability and momentum notes.
+            Tracks live provider data when connected; otherwise uses manual fallback estimates.
           </p>
         </div>
         <div className="flex gap-2">
@@ -117,6 +117,10 @@ export function LiveMatchPanel({
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-xs leading-5 text-slate-500">
+          Real live tracking needs an approved live feed such as GRID, PandaScore
+          Live, or Abios. The AI does not watch streams or scrape match pages.
+        </p>
       </div>
     </section>
   );

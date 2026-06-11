@@ -55,6 +55,12 @@ The analysis route sends only the match data already gathered from approved APIs
 
 The analyst also produces map-specific strengths and weaknesses. For each available map sample, it labels each team as `strong`, `weak`, or `even`, explains the weakness, and gives a research angle such as waiting for veto confirmation or downgrading a team on a weak map.
 
+The match detail page supports full previews with player images, player stat cards, map win rates, CT-side win rate, T-side win rate, pistol win rate, recent preview games, and short map explanations. These fields are populated from approved providers or manual entries when available.
+
+## Live Tracking
+
+The AI cannot literally watch streams. Live mode should be connected to official/approved live data such as GRID Live Esports Data, PandaScore Live, or Abios. Without a live provider key, the app shows a manual fallback estimate so the interface can still be tested.
+
 ## Learning Loop
 
 The analyst improves through calibration from your own resolved bet journal outcomes. Each time you mark entries as `win` or `loss`, the analysis route summarizes settled journal history, confidence buckets, team-specific outcomes, and ROI. That learning profile is included in future OpenAI prompts and also adjusts the final confidence score.

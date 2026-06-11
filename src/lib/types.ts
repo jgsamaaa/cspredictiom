@@ -21,11 +21,15 @@ export type TeamFormEntry = {
 export type PlayerStat = {
   name: string;
   role: string;
+  imageUrl?: string;
   rating: number;
   adr: number;
   kast: number;
   impact: number;
   maps: number;
+  headshotRate?: number;
+  openingDuelRate?: number;
+  clutchRating?: number;
 };
 
 export type TeamProfile = {
@@ -46,7 +50,24 @@ export type MapWinRate = {
   teamB: number;
   sampleA: number;
   sampleB: number;
+  teamACTWinRate?: number;
+  teamATWinRate?: number;
+  teamBCTWinRate?: number;
+  teamBTWinRate?: number;
+  teamAPistolWinRate?: number;
+  teamBPistolWinRate?: number;
   note?: string;
+  aiNote?: string;
+};
+
+export type PreviousGame = {
+  date: string;
+  opponent: string;
+  event: string;
+  result: FormResult;
+  score: string;
+  maps: string[];
+  sideNote?: string;
 };
 
 export type MapInfo = {
@@ -85,6 +106,10 @@ export type CSMatch = {
   teamB: TeamProfile;
   maps: MapInfo[];
   mapWinRates: MapWinRate[];
+  previousGames?: {
+    teamA: PreviousGame[];
+    teamB: PreviousGame[];
+  };
   headToHead: HeadToHeadEntry[];
   rosterNotes: string[];
   marketSnapshots: MarketSnapshot[];

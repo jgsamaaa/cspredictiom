@@ -1,4 +1,5 @@
 import { AlertTriangle, Swords } from "lucide-react";
+import { FullPreviewPanels } from "@/components/matches/full-preview-panels";
 import type { CSMatch, TeamProfile } from "@/lib/types";
 import { formatMatchTime, formatPercent } from "@/lib/format";
 import { TeamFormStrip } from "@/components/matches/team-form-strip";
@@ -78,6 +79,8 @@ export function MatchDataPanels({ match }: { match: CSMatch }) {
         <TeamFormStrip team={match.teamB} />
       </div>
 
+      <FullPreviewPanels match={match} />
+
       <section className="panel rounded-lg p-4">
         <div className="mb-3 flex items-center gap-2">
           <Swords size={17} className="text-amber-200" />
@@ -150,8 +153,8 @@ export function MatchDataPanels({ match }: { match: CSMatch }) {
             <h2 className="text-sm font-semibold text-slate-100">Roster / Stand-In Notes</h2>
           </div>
           <ul className="mt-3 space-y-2">
-            {[...match.teamA.rosterNotes, ...match.teamB.rosterNotes, ...match.rosterNotes].map((note) => (
-              <li key={note} className="rounded-md border border-slate-800 bg-slate-950/45 px-3 py-2 text-sm text-slate-400">
+            {[...match.teamA.rosterNotes, ...match.teamB.rosterNotes, ...match.rosterNotes].map((note, index) => (
+              <li key={`${index}-${note}`} className="rounded-md border border-slate-800 bg-slate-950/45 px-3 py-2 text-sm text-slate-400">
                 {note}
               </li>
             ))}

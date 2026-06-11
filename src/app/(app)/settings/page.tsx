@@ -1,6 +1,13 @@
 import { CheckCircle2, CircleOff, Database, KeyRound } from "lucide-react";
 import { approvedProviders } from "@/lib/data/providers";
-import { isSupabaseConfigured, openAiApiKey, openAiModel, pandaScoreToken } from "@/lib/env";
+import {
+  abiosApiKey,
+  gridApiKey,
+  isSupabaseConfigured,
+  openAiApiKey,
+  openAiModel,
+  pandaScoreToken,
+} from "@/lib/env";
 import { getJournalEntries } from "@/lib/journal-store";
 
 export default async function SettingsPage() {
@@ -18,6 +25,11 @@ export default async function SettingsPage() {
       label: "PandaScore CS2 schedule",
       configured: Boolean(pandaScoreToken),
       env: "PANDASCORE_TOKEN",
+    },
+    {
+      label: "Live match telemetry",
+      configured: Boolean(gridApiKey || abiosApiKey || pandaScoreToken),
+      env: "GRID_API_KEY, ABIOS_API_KEY, or provider live token",
     },
     {
       label: `OpenAI Analyst Agent (${openAiModel})`,

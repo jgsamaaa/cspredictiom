@@ -68,6 +68,7 @@ function mapPandaScoreMatch(match: PandaScoreMatch): CSMatch {
     teamB: neutralTeam(teamBName, 1),
     maps: [{ map: "TBD", state: "unknown", lean: "even" }],
     mapWinRates: [],
+    previousGames: { teamA: [], teamB: [] },
     headToHead: [],
     rosterNotes: [
       "Schedule came from PandaScore. Add manual or paid stats provider data for map rates, player form, and roster notes.",

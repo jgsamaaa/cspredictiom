@@ -130,7 +130,7 @@ export async function analyzeMatchWithOpenAI(
             task: "Analyze this CS2 match for personal research.",
             requiredActions: ["Bet Team A", "Bet Team B", "Wait Live", "Avoid"],
             mapWeaknessTask:
-              "For every available map win-rate sample, identify which team is strong, weak, or even. Explain the map-specific weakness and when it matters for betting research.",
+              "For every available map win-rate sample, identify which team is strong, weak, or even. Include CT-side, T-side, pistol, sample-size, and veto context when those fields exist. Keep each map explanation short and practical.",
             match,
             liveSnapshot: live ?? null,
             baselineModel: fallback,
