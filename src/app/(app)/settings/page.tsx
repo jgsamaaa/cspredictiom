@@ -1,8 +1,13 @@
 import { CheckCircle2, CircleOff, Database, KeyRound } from "lucide-react";
 import { approvedProviders } from "@/lib/data/providers";
 import { isSupabaseConfigured, openAiApiKey, openAiModel, pandaScoreToken } from "@/lib/env";
+import { getJournalEntries } from "@/lib/journal-store";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const entries = await getJournalEntries();
+  const settledEntries = entries.filter(
+    (entry) => entry.result === "win" || entry.result === "loss",
+  );
   const rows = [
     {
       label: "Supabase Auth + Journal",
@@ -23,6 +28,11 @@ export default function SettingsPage() {
       label: "Manual stats fallback",
       configured: true,
       env: "Seeded and user-entered data",
+    },
+    {
+      label: "Learning calibration",
+      configured: settledEntries.length >= 5,
+      env: `${settledEntries.length} settled journal outcomes`,
     },
   ];
 

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { buildLearningProfile } from "@/lib/analytics/learning";
 import { getManualLiveSnapshot } from "@/lib/data/manual-data";
 import { getMatchById } from "@/lib/data/providers";
+import { getJournalEntries } from "@/lib/journal-store";
 import { analyzeMatchWithOpenAI } from "@/lib/openai-analyst";
 
 const analysisSchema = z.object({
@@ -22,5 +24,10 @@ export async function POST(request: Request) {
   }
 
   const live = body.data.includeLive ? getManualLiveSnapshot(match) : undefined;
-  return NextResponse.json(await analyzeMatchWithOpenAI(match, live));
+  const journalEntries = await getJournalEntries();
+  const learningProfile = buildLearningProfile(journalEntries, match);
+
+  return NextResponse.json(
+    await analyzeMatchWithOpenAI(match, live, learningProfile),
+  );
 }

@@ -53,6 +53,12 @@ OPENAI_MODEL=gpt-5.4-mini
 
 The analysis route sends only the match data already gathered from approved APIs or manual stats. It does not scrape HLTV or browse the web.
 
+## Learning Loop
+
+The analyst improves through calibration from your own resolved bet journal outcomes. Each time you mark entries as `win` or `loss`, the analysis route summarizes settled journal history, confidence buckets, team-specific outcomes, and ROI. That learning profile is included in future OpenAI prompts and also adjusts the final confidence score.
+
+This is not automatic model fine-tuning. It is safer, immediate, and avoids overfitting on tiny samples. The calibration stays conservative until at least five settled journal entries exist.
+
 ## Data Sources
 
 The app avoids direct HLTV scraping. It supports:

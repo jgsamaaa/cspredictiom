@@ -140,3 +140,19 @@ export type AnalyticsSummary = {
   worstTeams: Array<{ name: string; profitLoss: number; bets: number }>;
   bestBetTypes: Array<{ name: string; roi: number; bets: number }>;
 };
+
+export type LearningProfile = {
+  totalSettled: number;
+  winRate: number;
+  roi: number;
+  averageConfidence: number;
+  confidenceAdjustment: number;
+  confidenceBuckets: Array<{
+    label: string;
+    bets: number;
+    winRate: number;
+    averageConfidence: number;
+  }>;
+  currentMatchSignals: string[];
+  promptSummary: string;
+};

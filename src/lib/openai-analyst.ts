@@ -1,8 +1,9 @@
 import OpenAI from "openai";
 import { z } from "zod";
+import { applyLearningCalibration } from "@/lib/analytics/learning";
 import { analyzeMatch } from "@/lib/analyst-agent";
 import { openAiApiKey, openAiModel } from "@/lib/env";
-import type { AnalystResult, CSMatch, LiveSnapshot } from "@/lib/types";
+import type { AnalystResult, CSMatch, LearningProfile, LiveSnapshot } from "@/lib/types";
 
 const analystOutputSchema = z.object({
   summary: z.string().min(20).max(700),
@@ -64,8 +65,12 @@ function normalizeProbabilities(teamAProbability: number, teamBProbability: numb
 export async function analyzeMatchWithOpenAI(
   match: CSMatch,
   live?: LiveSnapshot,
+  learningProfile?: LearningProfile,
 ): Promise<AnalystResult> {
-  const fallback = analyzeMatch(match, live);
+  const localResult = analyzeMatch(match, live);
+  const fallback = learningProfile
+    ? applyLearningCalibration(localResult, learningProfile)
+    : localResult;
 
   if (!openAiApiKey) {
     return fallback;
@@ -90,6 +95,7 @@ export async function analyzeMatchWithOpenAI(
             match,
             liveSnapshot: live ?? null,
             baselineModel: fallback,
+            learningProfile: learningProfile ?? null,
           }),
         },
       ],
@@ -109,7 +115,7 @@ export async function analyzeMatchWithOpenAI(
       parsed.teamBProbability,
     );
 
-    return {
+    const openAiResult: AnalystResult = {
       matchId: match.id,
       generatedAt: new Date().toISOString(),
       dataSources: match.providerSources,
@@ -120,6 +126,10 @@ export async function analyzeMatchWithOpenAI(
         "OpenAI-backed research estimate only. It is not guaranteed betting advice.",
       ].slice(0, 6),
     };
+
+    return learningProfile
+      ? applyLearningCalibration(openAiResult, learningProfile)
+      : openAiResult;
   } catch {
     return {
       ...fallback,
