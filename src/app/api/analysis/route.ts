@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { analyzeMatch } from "@/lib/analyst-agent";
 import { getManualLiveSnapshot } from "@/lib/data/manual-data";
 import { getMatchById } from "@/lib/data/providers";
+import { analyzeMatchWithOpenAI } from "@/lib/openai-analyst";
 
 const analysisSchema = z.object({
   matchId: z.string().min(1),
@@ -22,5 +22,5 @@ export async function POST(request: Request) {
   }
 
   const live = body.data.includeLive ? getManualLiveSnapshot(match) : undefined;
-  return NextResponse.json(analyzeMatch(match, live));
+  return NextResponse.json(await analyzeMatchWithOpenAI(match, live));
 }

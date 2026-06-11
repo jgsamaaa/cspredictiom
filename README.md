@@ -40,6 +40,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 The `bet_journal` table has row-level security enabled so authenticated users only see their own entries.
 
+For Vercel, add the same variables in Project Settings -> Environment Variables, then redeploy.
+
+## AI Analyst Agent
+
+The app uses a local analyst model when no OpenAI key is present. To enable OpenAI-backed summaries, add:
+
+```text
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.4-mini
+```
+
+The analysis route sends only the match data already gathered from approved APIs or manual stats. It does not scrape HLTV or browse the web.
+
 ## Data Sources
 
 The app avoids direct HLTV scraping. It supports:

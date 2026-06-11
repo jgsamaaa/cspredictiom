@@ -1,6 +1,6 @@
 import { CheckCircle2, CircleOff, Database, KeyRound } from "lucide-react";
 import { approvedProviders } from "@/lib/data/providers";
-import { isSupabaseConfigured, pandaScoreToken } from "@/lib/env";
+import { isSupabaseConfigured, openAiApiKey, openAiModel, pandaScoreToken } from "@/lib/env";
 
 export default function SettingsPage() {
   const rows = [
@@ -13,6 +13,11 @@ export default function SettingsPage() {
       label: "PandaScore CS2 schedule",
       configured: Boolean(pandaScoreToken),
       env: "PANDASCORE_TOKEN",
+    },
+    {
+      label: `OpenAI Analyst Agent (${openAiModel})`,
+      configured: Boolean(openAiApiKey),
+      env: "OPENAI_API_KEY, OPENAI_MODEL",
     },
     {
       label: "Manual stats fallback",

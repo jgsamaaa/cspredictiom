@@ -43,7 +43,7 @@ export function AnalysisPanel({ match }: { match: CSMatch }) {
             <h2 className="text-sm font-semibold text-slate-100">AI Analyst Agent</h2>
           </div>
           <p className="mt-1 text-xs text-slate-500">
-            Uses approved API/manual data attached to this match.
+            Uses OpenAI when configured, with approved API/manual match data only.
           </p>
         </div>
         <button
