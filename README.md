@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CS2 Edge Desk
 
-## Getting Started
+Private CS2 prediction dashboard for personal betting research. It is not a public sportsbook and it does not scrape HLTV directly.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Supabase Auth and Postgres for private login and bet journal persistence
+- Approved data provider layer with PandaScore schedule support and manual stats fallback
+
+## Local Setup
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If Supabase credentials are not configured, local preview auth uses:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+password: research-only
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `NEXT_PUBLIC_DEMO_PASSWORD` in `.env.local` to change that preview password.
 
-## Learn More
+## Supabase
 
-To learn more about Next.js, take a look at the following resources:
+1. Create a Supabase project.
+2. Enable email/password auth.
+3. Run `supabase/schema.sql` in the SQL editor.
+4. Add these variables to `.env.local`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The `bet_journal` table has row-level security enabled so authenticated users only see their own entries.
 
-## Deploy on Vercel
+## Data Sources
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app avoids direct HLTV scraping. It supports:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `PANDASCORE_TOKEN` for server-side PandaScore CS2 match schedules.
+- Manual stats entered or maintained in `src/lib/data/manual-data.ts`.
+- Extension points for GRID and Abios in `src/lib/data/providers.ts`.
+
+PandaScore uses the legacy `/csgo/` path for CS2 endpoints, including `/csgo/matches`; the app calls that route from the Next.js backend, not the browser.
+
+## Features
+
+- Private login
+- Today's CS2 match dashboard
+- Match detail pages with form, H2H, map rates, players, and roster notes
+- AI Analyst Agent route with probability, confidence, action, reasoning, and risk flags
+- Live match mode with periodic probability refresh
+- Bet journal
+- Analytics for total bets, win rate, ROI, teams, and bet types
+
+All predictions are research estimates only and are not guaranteed betting advice.
